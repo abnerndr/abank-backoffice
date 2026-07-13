@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getErrorMessage, serverRequest } from "../api/axios";
-import { API_PATHS } from "../api/constants";
+import { API_PATHS, TEST_USER_EMAIL_PREFIX } from "../api/constants";
 import {
   userListSchema,
   userSchema,
@@ -16,6 +16,7 @@ export async function getUsersAction(params: {
   limit?: number;
   search?: string;
   isVerified?: boolean;
+  excludeTestUsers?: boolean;
 }): Promise<ActionResult<UserList>> {
   try {
     const data = await serverRequest(async (client) => {
@@ -25,6 +26,8 @@ export async function getUsersAction(params: {
           limit: params.limit ?? 10,
           search: params.search || undefined,
           isVerified: params.isVerified,
+          excludeEmailPrefix:
+            params.excludeTestUsers === false ? undefined : TEST_USER_EMAIL_PREFIX,
           sortBy: "createdAt",
           sortOrder: "DESC",
         },
@@ -38,10 +41,19 @@ export async function getUsersAction(params: {
   }
 }
 
-export async function getUserStatsAction(): Promise<ActionResult<UserStats>> {
+export async function getUserStatsAction(options?: {
+  excludeTestUsers?: boolean;
+}): Promise<ActionResult<UserStats>> {
   try {
     const data = await serverRequest(async (client) => {
-      const { data: response } = await client.get(API_PATHS.users.stats);
+      const { data: response } = await client.get(API_PATHS.users.stats, {
+        params: {
+          excludeEmailPrefix:
+            options?.excludeTestUsers === false
+              ? undefined
+              : TEST_USER_EMAIL_PREFIX,
+        },
+      });
       return userStatsSchema.parse(response);
     });
 

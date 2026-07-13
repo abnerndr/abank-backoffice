@@ -25,14 +25,37 @@ export function getApiBaseUrl(server = typeof window === "undefined"): string {
   return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 }
 
+function ensureJsonBodyForEmptyRequests(
+  config: InternalAxiosRequestConfig
+): InternalAxiosRequestConfig {
+  const method = config.method?.toLowerCase();
+  if (
+    method &&
+    ["post", "put", "patch"].includes(method) &&
+    config.data === undefined
+  ) {
+    config.data = {};
+  }
+  return config;
+}
+
 export function createPublicApiClient(): AxiosInstance {
-  return axios.create({
+  const client = axios.create({
     baseURL: getApiBaseUrl(true),
     headers: { "Content-Type": "application/json" },
   });
+  client.interceptors.request.use(ensureJsonBodyForEmptyRequests);
+  return client;
 }
 
 let refreshPromise: Promise<string | null> | null = null;
+
+function isRefreshAuthError(error: unknown): boolean {
+  return (
+    axios.isAxiosError(error) &&
+    (error.response?.status === 401 || error.response?.status === 403)
+  );
+}
 
 async function refreshAccessToken(): Promise<string | null> {
   if (refreshPromise) return refreshPromise;
@@ -50,8 +73,10 @@ async function refreshAccessToken(): Promise<string | null> {
       const tokens = refreshTokenPairSchema.parse(data);
       await setAuthCookies(tokens);
       return tokens.access_token;
-    } catch {
-      await clearAuthCookies();
+    } catch (error) {
+      if (isRefreshAuthError(error)) {
+        await clearAuthCookies();
+      }
       return null;
     } finally {
       refreshPromise = null;
@@ -62,7 +87,11 @@ async function refreshAccessToken(): Promise<string | null> {
 }
 
 export async function createServerApiClient(): Promise<AxiosInstance> {
-  const accessToken = await getServerAccessToken();
+  let accessToken = await getServerAccessToken();
+
+  if (!accessToken) {
+    accessToken = (await refreshAccessToken()) ?? undefined;
+  }
 
   const client = axios.create({
     baseURL: getApiBaseUrl(true),
@@ -71,6 +100,8 @@ export async function createServerApiClient(): Promise<AxiosInstance> {
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     },
   });
+
+  client.interceptors.request.use(ensureJsonBodyForEmptyRequests);
 
   client.interceptors.response.use(
     (response) => response,

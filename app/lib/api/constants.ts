@@ -20,12 +20,20 @@ export const API_PATHS = {
     me: "/api/wallet/me",
     transfer: "/api/wallet/transfer",
     reverse: (id: string) => `/api/wallet/transactions/${id}/reverse`,
+    refundRequest: (id: string) =>
+      `/api/wallet/transactions/${id}/refund-request`,
   },
   adminWallet: {
     wallets: "/api/admin/wallet/wallets",
     userWallet: (userId: string) => `/api/admin/wallet/users/${userId}`,
     transactions: "/api/admin/wallet/transactions",
+    transactionStats: "/api/admin/wallet/transactions/stats",
     transaction: (id: string) => `/api/admin/wallet/transactions/${id}`,
+    refundRequests: "/api/admin/wallet/refund-requests",
+    approveRefundRequest: (id: string) =>
+      `/api/admin/wallet/refund-requests/${id}/approve`,
+    rejectRefundRequest: (id: string) =>
+      `/api/admin/wallet/refund-requests/${id}/reject`,
   },
 } as const;
 
@@ -35,3 +43,6 @@ export const ADMIN_ROUTES = [
   "/saldo",
   "/estornos",
 ] as const;
+
+/** Contas criadas automaticamente pelos testes de wallet na API. */
+export const TEST_USER_EMAIL_PREFIX = "wallet-test-";

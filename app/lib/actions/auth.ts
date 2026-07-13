@@ -8,7 +8,7 @@ import {
 import { API_PATHS } from "../api/constants";
 import {
   clearAuthCookies,
-  getServerAccessToken,
+  hasAuthSession,
   setAuthCookies,
 } from "../api/session";
 import {
@@ -58,9 +58,7 @@ export async function loginAction(
 
 export async function logoutAction(): Promise<ActionResult> {
   try {
-    const token = await getServerAccessToken();
-
-    if (token) {
+    if (await hasAuthSession()) {
       const client = await createServerApiClient();
       await client.post(API_PATHS.auth.logout).catch(() => undefined);
     }
@@ -77,8 +75,7 @@ export async function getSessionAction(): Promise<
   ActionResult<UserProfile | null>
 > {
   try {
-    const token = await getServerAccessToken();
-    if (!token) {
+    if (!(await hasAuthSession())) {
       return { ok: true, data: null };
     }
 

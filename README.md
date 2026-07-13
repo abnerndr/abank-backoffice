@@ -35,6 +35,7 @@ yarn start
 - **Login** — autenticação JWT (somente role `admin`)
 - **Dashboard** — estatísticas de usuários, saldo admin e transações recentes
 - **Usuários** — listagem, busca, verificação e detalhes com saldo
+- **Transações** — histórico completo (depósitos, transferências, estornos) com paginação
 - **Adicionar saldo** — transferência da carteira admin para usuários
 - **Estornos** — aprovação de reversão de depósitos/transferências
 

@@ -14,6 +14,13 @@ function cookieOptions(maxAgeSeconds: number) {
   };
 }
 
+/** API sends TTL in seconds (defaults) or milliseconds (.env.example). */
+export function tokenTtlToMaxAgeSeconds(ttl: number): number {
+  const seconds =
+    ttl > 10_000 && ttl % 1_000 === 0 ? Math.floor(ttl / 1_000) : Math.floor(ttl);
+  return Math.max(60, seconds);
+}
+
 export async function getServerAccessToken(): Promise<string | undefined> {
   const cookieStore = await cookies();
   return cookieStore.get(COOKIE_NAMES.accessToken)?.value;
@@ -24,28 +31,31 @@ export async function getServerRefreshToken(): Promise<string | undefined> {
   return cookieStore.get(COOKIE_NAMES.refreshToken)?.value;
 }
 
+export async function hasAuthSession(): Promise<boolean> {
+  const cookieStore = await cookies();
+  return Boolean(
+    cookieStore.get(COOKIE_NAMES.accessToken)?.value ||
+      cookieStore.get(COOKIE_NAMES.refreshToken)?.value
+  );
+}
+
 export async function setAuthCookies(tokens: TokenPair): Promise<void> {
   const cookieStore = await cookies();
-  const accessMaxAge = Math.max(60, Math.floor(tokens.expires_in / 1000));
-  const refreshMaxAge = Math.max(
-    60,
-    Math.floor(tokens.refresh_expires_in / 1000)
-  );
 
   cookieStore.set(
     COOKIE_NAMES.accessToken,
     tokens.access_token,
-    cookieOptions(accessMaxAge)
+    cookieOptions(tokenTtlToMaxAgeSeconds(tokens.expires_in))
   );
   cookieStore.set(
     COOKIE_NAMES.refreshToken,
     tokens.refresh_token,
-    cookieOptions(refreshMaxAge)
+    cookieOptions(tokenTtlToMaxAgeSeconds(tokens.refresh_expires_in))
   );
 }
 
 export async function clearAuthCookies(): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.delete(COOKIE_NAMES.accessToken);
-  cookieStore.delete(COOKIE_NAMES.refreshToken);
+  cookieStore.delete({ name: COOKIE_NAMES.accessToken, path: "/" });
+  cookieStore.delete({ name: COOKIE_NAMES.refreshToken, path: "/" });
 }

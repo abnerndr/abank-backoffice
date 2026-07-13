@@ -2,6 +2,7 @@
 
 import {
   ArrowLeftRight,
+  History,
   LayoutDashboard,
   LogOut,
   Moon,
@@ -19,6 +20,7 @@ import { useUiStore } from "../../lib/store/ui-store";
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/usuarios", label: "Usuários", icon: Users },
+  { href: "/transacoes", label: "Transações", icon: History },
   { href: "/saldo", label: "Adicionar Saldo", icon: Wallet },
   { href: "/estornos", label: "Estornos", icon: ArrowLeftRight },
 ] as const;

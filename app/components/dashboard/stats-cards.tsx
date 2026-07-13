@@ -5,29 +5,23 @@ import {
   Wallet,
 } from "lucide-react";
 import type { UserStats } from "../../lib/schemas/users";
-import type { TransactionList, Wallet as WalletType } from "../../lib/schemas/wallet";
+import type { TransactionStats, Wallet as WalletType } from "../../lib/schemas/wallet";
 import { formatCurrency } from "../../lib/utils/format";
 import { Card } from "../shared";
 
 interface DashboardStatsProps {
   userStats: UserStats;
   adminWallet: WalletType;
-  transactions: TransactionList;
+  transactionStats: TransactionStats;
   walletsTotal: number;
 }
 
 export function DashboardStats({
   userStats,
   adminWallet,
-  transactions,
+  transactionStats,
   walletsTotal,
 }: DashboardStatsProps) {
-  const reversibleCount = transactions.transactions.filter(
-    (tx) =>
-      tx.status === "COMPLETED" &&
-      (tx.type === "DEPOSIT" || tx.type === "TRANSFER")
-  ).length;
-
   const stats = [
     {
       label: "Total de usuários",
@@ -49,8 +43,8 @@ export function DashboardStats({
     },
     {
       label: "Estornos pendentes",
-      value: String(reversibleCount),
-      sub: `${transactions.total} transações no total`,
+      value: String(transactionStats.pendingRefunds),
+      sub: `${transactionStats.pendingRefunds} solicitação(ões) · ${transactionStats.total} transações no total`,
       icon: ArrowLeftRight,
     },
   ];

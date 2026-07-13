@@ -1,15 +1,15 @@
 import { RefundsTable } from "../../components/estornos/refunds-table";
 import { ErrorBox, PageHeader } from "../../components/shared";
-import { getAdminTransactionsAction } from "../../lib/actions/wallet";
+import { getAdminRefundRequestsAction } from "../../lib/actions/wallet";
 
 export default async function EstornosPage() {
-  const result = await getAdminTransactionsAction({ page: 1, limit: 50 });
+  const result = await getAdminRefundRequestsAction({ page: 1, limit: 50 });
 
   return (
     <div>
       <PageHeader
         title="Estornos"
-        description="Revise transações elegíveis e aprove ou rejeite estornos"
+        description="Revise solicitações de estorno e aprove ou rejeite"
       />
 
       {!result.ok ? (

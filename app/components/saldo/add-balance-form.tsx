@@ -2,11 +2,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { transferBalanceAction } from "../../lib/actions/wallet";
+import { useTransferBalanceMutation } from "../../lib/mutations/wallet";
+import { createIdempotencyKey } from "../../lib/idempotency-key";
+import { useAdminWalletQuery } from "../../lib/queries/wallet";
 import {
   transferSchema,
   type TransferInput,
@@ -21,36 +21,30 @@ import {
 } from "../shared";
 
 export function AddBalanceForm({
-  adminWallet,
+  adminWallet: initialAdminWallet,
   defaultEmail = "",
 }: {
   adminWallet: Wallet;
   defaultEmail?: string;
 }) {
-  const router = useRouter();
-  const [isPending, setIsPending] = useState(false);
+  const adminWalletQuery = useAdminWalletQuery(initialAdminWallet);
+  const transferMutation = useTransferBalanceMutation();
+  const adminWallet = adminWalletQuery.data ?? initialAdminWallet;
+  const idempotencyKeyRef = useRef(createIdempotencyKey());
 
-  const form = useForm<TransferInput>({
+  const form = useForm<Omit<TransferInput, "idempotencyKey">>({
     resolver: zodResolver(transferSchema),
     defaultValues: { toEmail: defaultEmail, amount: "" },
   });
 
-  async function onSubmit(data: TransferInput) {
-    setIsPending(true);
-    const result = await transferBalanceAction(data);
-
-    if (!result.ok) {
-      toast.error(result.error);
-      setIsPending(false);
-      return;
-    }
-
-    toast.success(
-      `Transferência de ${formatCurrency(data.amount)} realizada com sucesso.`
-    );
-    form.reset({ toEmail: data.toEmail, amount: "" });
-    router.refresh();
-    setIsPending(false);
+  function onSubmit(data: Omit<TransferInput, "idempotencyKey">) {
+    transferMutation.mutate(
+      { ...data, idempotencyKey: idempotencyKeyRef.current },
+      {
+      onSuccess: () => {
+        form.reset({ toEmail: data.toEmail, amount: "" });
+      },
+    });
   }
 
   return (
@@ -106,10 +100,12 @@ export function AddBalanceForm({
 
           <button
             type="submit"
-            disabled={isPending}
+            disabled={transferMutation.isPending}
             className={buttonPrimaryClassName()}
           >
-            {isPending && <Loader2 size={14} className="animate-spin" />}
+            {transferMutation.isPending && (
+              <Loader2 size={14} className="animate-spin" />
+            )}
             Transferir saldo
           </button>
         </form>

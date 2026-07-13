@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { AdminShell } from "../../components/shell/admin-shell";
-import { getSessionAction } from "../../lib/actions/auth";
+import { AdminShell } from "../components/shell/admin-shell";
+import { getSessionAction } from "../lib/actions/auth";
 
 export default async function AdminLayout({
   children,

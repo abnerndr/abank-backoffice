@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { COOKIE_NAMES } from "./app/lib/api/constants";
 
 const PUBLIC_PATHS = ["/login"];
-const ADMIN_PREFIXES = ["/dashboard", "/usuarios", "/saldo", "/estornos"];
+const ADMIN_PREFIXES = ["/dashboard", "/usuarios", "/transacoes", "/saldo", "/estornos"];
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some(
@@ -17,18 +17,25 @@ function isAdminPath(pathname: string): boolean {
   );
 }
 
+function hasSessionCookies(request: NextRequest): boolean {
+  return Boolean(
+    request.cookies.get(COOKIE_NAMES.accessToken)?.value ||
+      request.cookies.get(COOKIE_NAMES.refreshToken)?.value
+  );
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const accessToken = request.cookies.get(COOKIE_NAMES.accessToken)?.value;
+  const hasSession = hasSessionCookies(request);
 
   if (isPublicPath(pathname)) {
-    if (accessToken) {
+    if (hasSession) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
     return NextResponse.next();
   }
 
-  if (isAdminPath(pathname) && !accessToken) {
+  if (isAdminPath(pathname) && !hasSession) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("from", pathname);
     return NextResponse.redirect(loginUrl);

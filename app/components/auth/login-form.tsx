@@ -5,10 +5,10 @@ import { Loader2, Moon, Shield, Sun, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { loginAction } from "../lib/actions/auth";
-import { loginSchema, type LoginInput } from "../lib/schemas/auth";
-import { useUiStore } from "../lib/store/ui-store";
-import { Field, inputClassName, buttonPrimaryClassName } from "./shared";
+import { loginAction } from "../../lib/actions/auth";
+import { loginSchema, type LoginInput } from "../../lib/schemas/auth";
+import { useUiStore } from "../../lib/store/ui-store";
+import { Field, inputClassName, buttonPrimaryClassName } from "../shared";
 
 export function LoginForm() {
   const router = useRouter();
