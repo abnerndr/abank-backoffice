@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ABank Backoffice
 
-## Getting Started
+Painel administrativo para gestão de usuários, crédito de saldo e aprovação de estornos.
 
-First, run the development server:
+## Pré-requisitos
+
+- Node.js **>= 20.9**
+- [abank-api](https://github.com/abnerndr/abank-api) rodando (padrão: `http://localhost:8000`)
+- Credenciais de admin (seed da API: `admin@example.com` / `admin123`)
+
+## Configuração
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.local.example .env.local
+yarn install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Desenvolvimento
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+yarn dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Abra [http://localhost:5000](http://localhost:5000).
 
-## Learn More
+## Build
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+yarn build
+yarn start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Funcionalidades
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Login** — autenticação JWT (somente role `admin`)
+- **Dashboard** — estatísticas de usuários, saldo admin e transações recentes
+- **Usuários** — listagem, busca, verificação e detalhes com saldo
+- **Adicionar saldo** — transferência da carteira admin para usuários
+- **Estornos** — aprovação de reversão de depósitos/transferências
 
-## Deploy on Vercel
+## Integração com a API
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Ação | Endpoint |
+|------|----------|
+| Login | `POST /api/auth/login` |
+| Sessão | `GET /api/auth/me` |
+| Listar usuários | `GET /api/users` |
+| Stats | `GET /api/users/stats` |
+| Verificar usuário | `PUT /api/users/:id/verify` |
+| Saldo admin | `GET /api/wallet/me` |
+| Depósito admin | `POST /api/wallet/deposit` |
+| Creditar usuário | `POST /api/wallet/transfer` |
+| Listar transações | `GET /api/admin/wallet/transactions` |
+| Aprovar estorno | `POST /api/wallet/transactions/:id/reverse` |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Limitações conhecidas
+
+- Não existe endpoint de crédito direto em carteira de terceiros — usa-se transferência da carteira admin
+- Não há fila de estornos pendentes — a tela lista transações reversíveis
+- "Rejeitar estorno" é apenas descarte local na sessão (sem endpoint na API)
